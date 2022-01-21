@@ -13,13 +13,15 @@ import (
 
 	"strings"
 
+	"github.com/gerardocf9/tesis-go/router"
 	"github.com/posener/h2conn"
 )
 
 //Manejadores, setea el puertoy el handler escucha la direccion de PORT
 func Manejadores() {
-	router := mux.NewRouter()
-	router.HandleFunc("/echo", ServeHTTP)
+	mx:= mux.NewRouter()
+	mx.HandleFunc("/echo", ServeHTTP)
+    mx.HandleFunc("/general",router.VistaGeneral)
 
 	PORT := os.Getenv("PORT")
 
@@ -27,7 +29,7 @@ func Manejadores() {
 		PORT = "8080"
 	}
 
-	handler := cors.AllowAll().Handler(router)
+	handler := cors.AllowAll().Handler(mx)
 
 	log.Printf("Serving on " + PORT)
 	srv := &http.Server{Addr: ":" + PORT, Handler: handler}
