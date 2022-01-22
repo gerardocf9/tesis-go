@@ -19,9 +19,11 @@ import (
 
 //Manejadores, setea el puertoy el handler escucha la direccion de PORT
 func Manejadores() {
-	mx:= mux.NewRouter()
+	mx := mux.NewRouter()
 	mx.HandleFunc("/echo", ServeHTTP)
-    mx.HandleFunc("/general",router.VistaGeneral)
+	mx.HandleFunc("/general", router.VistaGeneral)
+	//static resources
+	mx.Handle("/assets", http.StripPrefix("/assets", http.FileServer(http.Dir("assets"))))
 
 	PORT := os.Getenv("PORT")
 

@@ -1,0 +1,93 @@
+
+/*https://flatuicolors.com*/
+:root{
+    /* colors */
+    --l-red:#ff6b81;
+    --l--green:#7bed9f;
+    --l-yellow:#eccc68;
+    --d-red:#ff4757;
+    --d-green:#2ed573;
+    --d-yellow:#ffa502;
+
+    --gray1:#d1d8e0;
+    --gray2:#a5b1c2;
+    --gray3:#778ca3;
+    --gray4:#4b6584;
+
+    --l-blue:#45aaf2;
+    --d-blue:#2d98da;
+    --orange:#e8491d;
+
+    --background:#35424a;
+    /* speed animation */
+    --transition-speed: 600ms;
+
+    /* font */
+    font-size: 16px;
+    font-family:  'Roboto', sans-serif;
+}
+
+/*   global  */
+body{
+    margin: 0;
+    padding: 0;
+    background-color: var(--gray1);
+    color: var(--gray1);
+}
+
+.container{
+    width: 99%;
+    padding: auto;
+    margin: auto;
+}
+.clr{
+    clear:both;
+}
+
+
+a{
+    text-decoration: none;
+    text-transform: capitalize;
+    color: var(--gray1);
+}
+
+ul{
+   margin:0;
+   padding: 0;
+}
+
+
+footer{
+    clear:both;
+    background-color:var(--background);
+    height:6rem;
+    padding-top: 30px;
+    text-align: center;
+    font-weight:bold;
+    font-size: 20px;
+}
+
+header{
+    margin: 0 0 5px 5rem;
+    padding-top: 30px;
+    min-height: 70px;
+    background-color:var(--background);
+    border-bottom: 5px solid var(--orange);
+}
+
+header h1{
+    float: left;
+    font-size: 50px;
+    margin: 0;
+    padding-left: 2rem;
+}
+
+header .types{
+    margin-right: 4rem;
+    float: right;
+}
+header li{
+    display: inline;
+    float: left;
+    padding: 20px 20px 0 10px;
+}
