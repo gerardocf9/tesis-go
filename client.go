@@ -1,22 +1,23 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
+	"time"
 
+	"github.com/gerardocf9/tesis-go/models"
 	"github.com/posener/h2conn"
 	"golang.org/x/net/http2"
 )
 
-const url = "https://localhost:8080/echo"
+const url = "https://localhost:8080/sensormessage"
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -44,33 +45,90 @@ func main() {
 	}
 
 	var (
-		// stdin reads from stdin
-		stdin = bufio.NewReader(os.Stdin)
-
 		// in and out send and receive json messages to the server
 		in  = json.NewDecoder(conn)
 		out = json.NewEncoder(conn)
+		//loginRespuesta
+		loginResp string
 	)
-
 	defer log.Println("Exited")
 
+	var sidMotor, sidSensor int
+	//login values
+	log.Println("ingrese el id del motor: ")
+	_, err = fmt.Scanf("%d", &sidMotor)
+	if err != nil {
+		log.Fatalf("invalid input: %v", err)
+	}
+	log.Println("ingrese el id del sensor: ")
+	_, err = fmt.Scanf("%d", &sidSensor)
+
+	if err != nil {
+		log.Fatalf("invalid input: %v", err)
+	}
+	//convert to uint
+	idMotor := uint(sidMotor)
+	idSensor := uint(sidSensor)
+	//login request
+	err = out.Encode(idMotor)
+	if err != nil {
+		log.Fatalf("Failed Encoding idMotor: %v", err)
+	}
+	//send 2 messages
+	err = out.Encode(idSensor)
+	if err != nil {
+		log.Fatalf("Failed Encoding idSensor: %v", err)
+	}
+	//chequeando
+	log.Println("Check idmotor")
+	err = in.Decode(&loginResp)
+	if err != nil {
+		log.Fatalf("Failed login: %v", err)
+	}
+	if loginResp == "OK" {
+		log.Println("login succeded")
+	} else {
+		log.Fatalf("Failed login 2: %v", err)
+	}
+
+	post := models.SensorInfoGeneral{
+		IdMotor:         idMotor,
+		IdSensor:        idSensor,
+		Caracteristicas: "potencia ... ubicacion en planta ...",
+		Time:            time.Now(),
+	}
+
+	var (
+		x float64
+		y float64
+		z float64
+	)
+	min := float64(3)
+	max := float64(10)
+
+	go func() {
+		for {
+			//numeros aleatorios para la data
+			x = min + rand.Float64()*(max-min)
+			y = min + rand.Float64()*(max-min)
+			z = min + rand.Float64()*(max-min)
+
+			post.Data = models.DataSensor{
+				AcelerationX: x,
+				AcelerationY: y,
+				AcelerationZ: z,
+			}
+			// Send the message to the server
+			err = out.Encode(post)
+			if err != nil {
+				log.Fatalf("Failed sending message: %v", err)
+			}
+			time.Sleep(10 * time.Second)
+		}
+	}()
+
 	// Loop until user terminates
-	fmt.Println("Echo session starts, press ctrl-C to terminate.")
 	for ctx.Err() == nil {
-
-		// Ask the user to give a message to send to the server
-		fmt.Print("Send: ")
-		msg, err := stdin.ReadString('\n')
-		if err != nil {
-			log.Fatalf("Failed reading stdin: %v", err)
-		}
-		msg = strings.TrimRight(msg, "\n")
-
-		// Send the message to the server
-		err = out.Encode(msg)
-		if err != nil {
-			log.Fatalf("Failed sending message: %v", err)
-		}
 
 		// Receive the response from the server
 		var resp string
@@ -78,7 +136,6 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed receiving message: %v", err)
 		}
-
 		fmt.Printf("Got response %q\n", resp)
 	}
 }
