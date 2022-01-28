@@ -15,8 +15,8 @@ type encoder interface {
 	Encode(interface{}) error
 }
 type server struct {
-	conns    map[uint]encoder
-	idSensor map[uint]uint
+	conns    map[uint64]encoder
+	idSensor map[uint64][]uint64
 	lock     sync.RWMutex
 }
 
@@ -26,8 +26,8 @@ type maxServer struct {
 }
 */
 var Servidor = server{
-	conns:    make(map[uint]encoder),
-	idSensor: make(map[uint]uint),
+	conns:    make(map[uint64]encoder),
+	idSensor: make(map[uint64][]uint64),
 }
 
 //var MaxServidor = maxServer{sPost: Servidor}
@@ -55,7 +55,9 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 
 	// First check user login ids
-	var idMotor, idSensor uint
+	var idMotor uint64
+	var idSensor []uint64
+
 	err = in.Decode(&idMotor)
 	if err != nil {
 		log.Printf("Failed reading login id: %v", err)
@@ -87,7 +89,7 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer c.logout(idMotor)
 
 	// Defer logout log message
-	defer log.Printf("User logout: %s", idMotor)
+	defer log.Printf("User logout: %d", idMotor)
 
 	// wait for client to close connection
 	post := models.SensorInfoGeneral{}
@@ -97,7 +99,7 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Failed getting post: %v", err)
 			return
 		}
-		log.Printf("Got msg: %+v", post)
+		log.Printf("Got msg: %+v \n\n", post)
 		err = out.Encode("ok")
 		if err != nil {
 			log.Printf("failed sending response to client: %v", err)
@@ -106,7 +108,7 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c *server) login(id uint, sensor uint, enc encoder) error {
+func (c *server) login(id uint64, sensor []uint64, enc encoder) error {
 	if _, ok := c.conns[id]; ok {
 		return fmt.Errorf("user already exists")
 	}
@@ -116,7 +118,7 @@ func (c *server) login(id uint, sensor uint, enc encoder) error {
 	return nil
 }
 
-func (c *server) logout(id uint) {
+func (c *server) logout(id uint64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	delete(c.conns, id)

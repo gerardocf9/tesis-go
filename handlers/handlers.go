@@ -16,8 +16,6 @@ func Manejadores() {
 	mx := mux.NewRouter()
 	mx.Handle("/sensormessage", router.Servidor)
 	mx.HandleFunc("/general", router.VistaGeneral)
-	//static resources
-	mx.Handle("/assets", http.StripPrefix("/assets", http.FileServer(http.Dir("assets"))))
 
 	PORT := os.Getenv("PORT")
 

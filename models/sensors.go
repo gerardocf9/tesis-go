@@ -8,9 +8,9 @@ import (
 
 type SensorInfoGeneral struct {
 	Id              primitive.ObjectID `bson:"_id" json:"id"`
-	IdMotor         uint               `bson:"IdMotor" json:"IdMotor"`
+	IdMotor         uint64             `bson:"IdMotor" json:"IdMotor"`
 	Caracteristicas string             `bson:"caracteristicas,omitempty" json:"caracteristicas"`
-	IdSensor        uint               `bson:"IdSensor" json:"IdSensor"`
+	IdSensor        []uint64           `bson:"IdSensor" json:"IdSensor"`
 	Data            DataSensor         `bson:"Data" json:"Data"`
 	Time            time.Time          `bson:"Time" json:Time`
 }

@@ -66,9 +66,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("invalid input: %v", err)
 	}
-	//convert to uint
-	idMotor := uint(sidMotor)
-	idSensor := uint(sidSensor)
+	//convert to uint64
+	idMotor := uint64(sidMotor)
+	idSensor := []uint64{uint64(sidSensor)}
 	//login request
 	err = out.Encode(idMotor)
 	if err != nil {
@@ -95,7 +95,6 @@ func main() {
 		IdMotor:         idMotor,
 		IdSensor:        idSensor,
 		Caracteristicas: "potencia ... ubicacion en planta ...",
-		Time:            time.Now(),
 	}
 
 	var (
@@ -108,11 +107,12 @@ func main() {
 
 	go func() {
 		for {
-			//numeros aleatorios para la data
+			//numeros aleatorios para la data, me da un numero entre 0 y 1
 			x = min + rand.Float64()*(max-min)
 			y = min + rand.Float64()*(max-min)
 			z = min + rand.Float64()*(max-min)
 
+			post.Time = time.Now()
 			post.Data = models.DataSensor{
 				AcelerationX: x,
 				AcelerationY: y,
