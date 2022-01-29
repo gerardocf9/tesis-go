@@ -1,10 +1,9 @@
-package main
+package client
 
 import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"os/signal"
 	"time"
 
+	"fyne.io/fyne/v2/data/binding"
 	"github.com/gerardocf9/tesis-go/models"
 	"github.com/posener/h2conn"
 	"golang.org/x/net/http2"
@@ -19,7 +19,7 @@ import (
 
 const url = "https://localhost:8080/sensormessage"
 
-func main() {
+func ConnectServer(post models.SensorInfoGeneral, logp binding.String) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -51,50 +51,28 @@ func main() {
 		//loginRespuesta
 		loginResp string
 	)
-	defer log.Println("Exited")
+	defer logp.Set("Exit")
 
-	var sidMotor, sidSensor int
-	//login values
-	log.Println("ingrese el id del motor: ")
-	_, err = fmt.Scanf("%d", &sidMotor)
-	if err != nil {
-		log.Fatalf("invalid input: %v", err)
-	}
-	log.Println("ingrese el id del sensor: ")
-	_, err = fmt.Scanf("%d", &sidSensor)
-
-	if err != nil {
-		log.Fatalf("invalid input: %v", err)
-	}
-	//convert to uint64
-	idMotor := uint64(sidMotor)
-	idSensor := []uint64{uint64(sidSensor)}
 	//login request
-	err = out.Encode(idMotor)
+	err = out.Encode(post.IdMotor)
 	if err != nil {
 		log.Fatalf("Failed Encoding idMotor: %v", err)
 	}
 	//send 2 messages
-	err = out.Encode(idSensor)
+	err = out.Encode(post.IdSensor)
 	if err != nil {
 		log.Fatalf("Failed Encoding idSensor: %v", err)
 	}
 	//chequeando
-	log.Println("Check idmotor")
+	logp.Set("Check idmotor")
 	err = in.Decode(&loginResp)
 	if err != nil {
 		log.Fatalf("Failed login: %v", err)
 	}
 	if loginResp == "OK" {
-		log.Println("login succeded")
+		logp.Set("login succeded")
 	} else {
 		log.Fatalf("Failed login 2: %v", err)
-	}
-
-	post := models.SensorInfoGeneral{
-		IdMotor:         idMotor,
-		IdSensor:        idSensor,
-		Caracteristicas: "potencia ... ubicacion en planta ...",
 	}
 
 	var (
@@ -136,7 +114,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed receiving message: %v", err)
 		}
-		fmt.Printf("Got response %q\n", resp)
+		logp.Set("Got response " + resp)
 	}
 }
 

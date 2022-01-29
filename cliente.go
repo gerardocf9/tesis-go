@@ -10,6 +10,8 @@ import (
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"github.com/gerardocf9/tesis-go/client"
+	"github.com/gerardocf9/tesis-go/models"
 )
 
 func main() {
@@ -83,7 +85,7 @@ func main() {
 	ip := widget.NewEntryWithData(ip_log)
 	conect := widget.NewButton("conectar", func() {
 		log.Println("funcion")
-		conectServidor(ip_log, id_log, pot_log, info_log, s1, s2, s3, s4, s5, logM, dmg)
+		go conectServidor(ip_log, id_log, pot_log, info_log, s1, s2, s3, s4, s5, logM, dmg)
 	})
 	subNivel1 := container.New(layout.NewFormLayout(), widget.NewLabel("IP: "), ip)
 	subNivel2 := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), conect, layout.NewSpacer())
@@ -179,7 +181,7 @@ func conectServidor(ip, id, pot, info binding.String, s1, s2, s3, s4, s5, logp b
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")
 	}
-
+	//prints...
 	log.Println(dir + " " + informacion)
 	log.Println(idMotor)
 	log.Println(potencia)
@@ -187,4 +189,12 @@ func conectServidor(ip, id, pot, info binding.String, s1, s2, s3, s4, s5, logp b
 	for _, sen := range idSensor {
 		log.Println(sen)
 	}
+	var post = models.SensorInfoGeneral{
+		IdMotor:         idMotor,
+		IdSensor:        idSensor,
+		Caracteristicas: informacion,
+	}
+
+	//ConnectServer(post, logp,dir,potencia)
+	client.ConnectServer(post, logp)
 }

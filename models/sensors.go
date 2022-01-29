@@ -12,7 +12,7 @@ type SensorInfoGeneral struct {
 	Caracteristicas string             `bson:"caracteristicas,omitempty" json:"caracteristicas"`
 	IdSensor        []uint64           `bson:"IdSensor" json:"IdSensor"`
 	Data            DataSensor         `bson:"Data" json:"Data"`
-	Time            time.Time          `bson:"Time" json:Time`
+	Time            time.Time          `bson:"Time" json:"Time"`
 }
 
 type DataSensor struct {
