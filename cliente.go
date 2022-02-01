@@ -83,9 +83,19 @@ func main() {
 	ip_log.Set("localhost:8080")
 
 	ip := widget.NewEntryWithData(ip_log)
+
+	work := make(chan int)
+
+	running := false
 	conect := widget.NewButton("conectar", func() {
-		log.Println("funcion")
-		go conectServidor(ip_log, id_log, pot_log, info_log, s1, s2, s3, s4, s5, logM, dmg)
+		if running {
+			log.Println("Sending")
+			work <- 1
+			log.Println("sended")
+			<-work
+		}
+		running = true
+		go conectServidor(work, ip_log, id_log, pot_log, info_log, s1, s2, s3, s4, s5, logM, dmg)
 	})
 	subNivel1 := container.New(layout.NewFormLayout(), widget.NewLabel("IP: "), ip)
 	subNivel2 := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), conect, layout.NewSpacer())
@@ -119,7 +129,7 @@ func main() {
 
 }
 
-func conectServidor(ip, id, pot, info binding.String, s1, s2, s3, s4, s5, logp binding.String, dmg binding.Float) {
+func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s4, s5, logp binding.String, dmg binding.Float) {
 	dir, err := ip.Get()
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")
@@ -196,5 +206,5 @@ func conectServidor(ip, id, pot, info binding.String, s1, s2, s3, s4, s5, logp b
 	}
 
 	//ConnectServer(post, logp,dir,potencia)
-	client.ConnectServer(post, logp)
+	client.ConnectServer(ch, post, logp)
 }

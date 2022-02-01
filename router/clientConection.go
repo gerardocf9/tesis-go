@@ -93,7 +93,22 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// wait for client to close connection
 	post := models.SensorInfoGeneral{}
+
+	var option string
 	for r.Context().Err() == nil {
+		//type of message
+		err = in.Decode(&option)
+		if err != nil {
+			log.Printf("Failed getting post: %v", err)
+			return
+		}
+
+		//incoming data is not a post, reboot client
+		if option != "post" {
+			return
+		}
+
+		//Recibing post
 		err = in.Decode(&post)
 		if err != nil {
 			log.Printf("Failed getting post: %v", err)
@@ -122,6 +137,7 @@ func (c *server) logout(id uint64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	delete(c.conns, id)
+	log.Println("loggedout")
 }
 
 type logger struct {

@@ -7,8 +7,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"os"
-	"os/signal"
 	"time"
 
 	"fyne.io/fyne/v2/data/binding"
@@ -19,11 +17,9 @@ import (
 
 const url = "https://localhost:8080/sensormessage"
 
-func ConnectServer(post models.SensorInfoGeneral, logp binding.String) {
+func ConnectServer(ch chan int, post models.SensorInfoGeneral, logp binding.String) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	go catchSignal(cancel)
 
 	// We use a client with custom http2.Transport since the server certificate is not signed by
 	// an authorized CA, and this is the way to ignore certificate verification errors.
@@ -83,45 +79,68 @@ func ConnectServer(post models.SensorInfoGeneral, logp binding.String) {
 	min := float64(3)
 	max := float64(10)
 
+	private := make(chan int)
+
 	go func() {
 		for {
-			//numeros aleatorios para la data, me da un numero entre 0 y 1
-			x = min + rand.Float64()*(max-min)
-			y = min + rand.Float64()*(max-min)
-			z = min + rand.Float64()*(max-min)
 
-			post.Time = time.Now()
-			post.Data = models.DataSensor{
-				AcelerationX: x,
-				AcelerationY: y,
-				AcelerationZ: z,
+			select {
+			default:
+
+				err = out.Encode("post")
+				if err != nil {
+					log.Fatalf("Failed sending message: %v", err)
+				}
+
+				//numeros aleatorios para la data, me da un numero entre 0 y 1
+				x = min + rand.Float64()*(max-min)
+				y = min + rand.Float64()*(max-min)
+				z = min + rand.Float64()*(max-min)
+
+				post.Time = time.Now()
+				post.Data = models.DataSensor{
+					AcelerationX: x,
+					AcelerationY: y,
+					AcelerationZ: z,
+				}
+				// Send the message to the server
+				err = out.Encode(post)
+				if err != nil {
+					log.Fatalf("Failed sending message: %v", err)
+				}
+				time.Sleep(5 * time.Second)
+			case <-private:
+				log.Println("Stopping the messages")
+				return
 			}
-			// Send the message to the server
-			err = out.Encode(post)
-			if err != nil {
-				log.Fatalf("Failed sending message: %v", err)
-			}
-			time.Sleep(10 * time.Second)
 		}
 	}()
 
 	// Loop until user terminates
-	for ctx.Err() == nil {
+	for {
 
-		// Receive the response from the server
-		var resp string
-		err = in.Decode(&resp)
-		if err != nil {
-			log.Fatalf("Failed receiving message: %v", err)
+		select {
+		default:
+			// Receive the response from the server
+			var resp string
+			err = in.Decode(&resp)
+			if err != nil {
+				log.Fatalf("Failed receiving message: %v", err)
+			}
+			logp.Set("Got response " + resp)
+
+		case <-ch:
+			log.Println("Discconecting")
+			private <- 1
+			err = out.Encode("disconnect")
+			if err != nil {
+				log.Fatalf("Failed sending message: %v", err)
+			}
+			log.Println("disconnect")
+			ch <- 1
+			log.Println("Returning")
+			return
 		}
-		logp.Set("Got response " + resp)
 	}
-}
 
-func catchSignal(cancel context.CancelFunc) {
-	sig := make(chan os.Signal)
-	signal.Notify(sig, os.Interrupt)
-	<-sig
-	log.Println("Cancelling due to interrupt")
-	cancel()
 }
