@@ -91,18 +91,20 @@ func ConnectServer(ch chan int, post models.SensorInfoGeneral, logp binding.Stri
 				if err != nil {
 					log.Fatalf("Failed sending message: %v", err)
 				}
+				post.Data = make([]models.DataSensor, 0, 3)
+				for i := 0; i < 3; i++ {
+					//numeros aleatorios para la data, me da un numero entre 0 y 1
+					x = min + rand.Float64()*(max-min)
+					y = min + rand.Float64()*(max-min)
+					z = min + rand.Float64()*(max-min)
 
-				//numeros aleatorios para la data, me da un numero entre 0 y 1
-				x = min + rand.Float64()*(max-min)
-				y = min + rand.Float64()*(max-min)
-				z = min + rand.Float64()*(max-min)
-
-				post.Time = time.Now()
-				post.Data = models.DataSensor{
-					AcelerationX: x,
-					AcelerationY: y,
-					AcelerationZ: z,
+					post.Data = append(post.Data, models.DataSensor{
+						AcelerationX: x,
+						AcelerationY: y,
+						AcelerationZ: z,
+					})
 				}
+				post.Time = time.Now()
 				// Send the message to the server
 				err = out.Encode(post)
 				if err != nil {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/gerardocf9/tesis-go/bbdd"
 	"github.com/gerardocf9/tesis-go/models"
 	"github.com/posener/h2conn"
 )
@@ -115,6 +116,18 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Printf("Got msg: %+v \n\n", post)
+
+		//inserting in bbdd
+		_, status, err := bbdd.InsertRegistro(post)
+		//error handling and ok to client
+		if err != nil {
+			log.Printf("Failed inserting in the bbdd: %v", err)
+		}
+		if !status {
+			log.Printf("Cant insert Register in bbdd")
+		}
+
+		//response
 		err = out.Encode("ok")
 		if err != nil {
 			log.Printf("failed sending response to client: %v", err)

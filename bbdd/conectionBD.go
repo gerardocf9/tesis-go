@@ -37,3 +37,16 @@ func CheckConnection() int {
 	}
 	return 1
 }
+
+func Close() {
+	// client provides a method to close
+	// a mongoDB connection.
+	defer func() {
+
+		// client.Disconnect method also has deadline.
+		// returns error if any,
+		if err := MongoCN.Disconnect(context.Background()); err != nil {
+			panic(err)
+		}
+	}()
+}
