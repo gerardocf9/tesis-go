@@ -17,6 +17,7 @@ func Manejadores() {
 	mx := mux.NewRouter()
 	//mx.Handle("/sensormessage", router.Servidor)                          //clientInterconexion
 	mx.HandleFunc("/sensormessage", middleware.CheckBDH(router.Servidor)) //Methods("POST")
+	mx.HandleFunc("/exhaustive", router.VistaExhaustiva)
 	mx.HandleFunc("/general", router.VistaGeneral)
 
 	PORT := os.Getenv("PORT")

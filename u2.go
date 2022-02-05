@@ -60,6 +60,7 @@ func ConnectServer(ch chan int, post models.SensorInfoGeneral, logp binding.Stri
 		log.Fatalf("Failed Encoding idSensor: %v", err)
 	}
 	//chequeando
+	log.Println("Check idmotor")
 	logp.Set("Check idmotor")
 	err = in.Decode(&loginResp)
 	if err != nil {
@@ -70,50 +71,45 @@ func ConnectServer(ch chan int, post models.SensorInfoGeneral, logp binding.Stri
 	} else {
 		log.Fatalf("Failed login 2: %v", err)
 	}
-
-	//chanels for internal comunication
-	var message = make(chan string)
-	var private = make(chan int)
-	go timer(ctx, message, private)
-	go listen(ctx, message, in, private)
 	// Loop until user terminates
 	for {
 
 		select {
-		case resp := <-message:
-			// Receive the response from the server
-			if resp == "error" {
-				log.Fatalf("Llego un error")
-			}
-			if resp == "ok" {
-				logp.Set("Got response " + resp)
-			}
-			if resp == "post" {
-				sendPost(resp, 10, post, out)
-				logp.Set("sending post ")
-			}
-			if resp == "exhaustiva" {
-				sendPost(resp, 1000, post, out)
-				logp.Set("sending exhaustive")
-			}
-
 		case <-ch:
 			log.Println("Discconecting")
-			private <- 1
 			err = out.Encode("disconnect")
 			if err != nil {
 				log.Fatalf("Failed sending message: %v", err)
 			}
-			log.Println("disconnect")
+			log.Println("disconnected from server")
 			ch <- 1
-			log.Println("Returning")
 			return
+
+		default:
+			// Receive the response from the server
+			var resp string
+			err = in.Decode(&resp)
+			if err != nil {
+				log.Fatalf("Failed receiving message: %v", err)
+			}
+			if resp == "ok" {
+				logp.Set("Got response " + resp)
+				continue
+			}
+			if resp == "post" {
+				sendPost("post", 10, false, post, out)
+				log.Println("Sended post")
+				continue
+			}
+			if resp == "VistaExhaustiva" {
+				sendPost("VistaExhaustiva", 1000, false, post, out)
+				log.Println("Sended exhaustive")
+			}
 		}
 	}
-
 }
 
-func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.Encoder) {
+func sendPost(msg string, nData int, repetir bool, post models.SensorInfoGeneral, out *json.Encoder) {
 	var (
 		x float64
 		y float64
@@ -144,40 +140,5 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 	err = out.Encode(post)
 	if err != nil {
 		log.Fatalf("Failed sending message: %v", err)
-	}
-}
-
-func listen(ct context.Context, message chan string, in *json.Decoder, private chan int) {
-	for {
-		select {
-		case <-private:
-			log.Println("Listen canceled")
-			return
-		default:
-			var resp string
-			err := in.Decode(&resp)
-			if err != nil {
-				log.Fatalf("Failed receiving message: %v", err)
-			}
-			if (resp == "post") || (resp == "ok") || (resp == "exhaustiva") {
-				message <- resp
-				continue
-			}
-			message <- "error"
-			return //No es ningun mensaje valido
-		}
-	}
-}
-
-func timer(ct context.Context, message chan string, private chan int) {
-	for {
-		select {
-		case <-private:
-			log.Println("Canceled timer")
-			return
-		default:
-			message <- "post"
-			time.Sleep(15 * time.Second)
-		}
 	}
 }

@@ -6,17 +6,22 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gerardocf9/tesis-go/bbdd"
 	"github.com/gerardocf9/tesis-go/models"
 	"github.com/posener/h2conn"
 )
 
+type decoder interface {
+	Decode(interface{}) error
+}
 type encoder interface {
 	Encode(interface{}) error
 }
 type server struct {
-	conns       map[uint64]encoder
+	//connOut     map[uint64]encoder //out,int
+	//connIn      map[uint64]decoder
 	connections map[uint64]string
 	idSensor    map[uint64][]uint64
 	lock        sync.RWMutex
@@ -28,8 +33,9 @@ type maxServer struct {
 }
 */
 var Servidor = server{
+	//connOut:    make(map[uint64]encoder),
+	//connIn:     make(map[uint64]decoder),
 	connections: make(map[uint64]string),
-	conns:       make(map[uint64]encoder),
 	idSensor:    make(map[uint64][]uint64),
 }
 
@@ -39,12 +45,6 @@ var dataExhaustive = make(chan models.SensorInfoGeneral)
 
 //var MaxServidor = maxServer{sPost: Servidor}
 
-func getInfoSensor(w http.ResponseWriter, r *http.Request) {
-	log.Println("sirve")
-
-	log.Println(r.Body)
-	//log.Println(c)
-}
 func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := h2conn.Accept(w, r)
 	if err != nil {
@@ -57,8 +57,6 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var (
 		// in and out send and receive json messages to the client
 		in, out = json.NewDecoder(conn), json.NewEncoder(conn)
-		// Conn has a RemoteAddr property which helps us identify the client
-		log = logger{remoteAddr: r.RemoteAddr}
 	)
 
 	// First check user login ids
@@ -77,7 +75,7 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Trata de conectarse: %v", idMotor)
 
-	err = c.login(idMotor, idSensor, out, r.RemoteAddr)
+	err = c.login(idMotor, idSensor, r.RemoteAddr)
 	if err != nil {
 		err = out.Encode(err.Error())
 		log.Printf(err.Error())
@@ -101,59 +99,60 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// wait for client to close connection
 	post := models.SensorInfoGeneral{}
 
+	var cPost = make(chan int)
+	//escuchar en el servidor
+	go pedirInfo(cPost, out)
 	var option string
 	for r.Context().Err() == nil {
+
 		select {
 		case conEsperada := <-canalInterno:
 			if r.RemoteAddr != conEsperada {
 				continue
 			}
-			err = out.Encode("exhaustiva")
-			if err != nil {
-				log.Printf("failed sending response to client: %v", err)
-				return
-			}
-			//type of message
+			cPost <- 1
+			log.Printf("Enviando data especial")
+			out.Encode("VistaExhaustiva")
+
 			err = in.Decode(&option)
 			if err != nil {
-				log.Printf("Failed getting post: %v", err)
+				log.Printf("Failed getting vista exhaustiva: %v", err)
 				return
 			}
-
 			//incoming data is not a post, reboot client
-			if option != "exhaustiva" {
+			if option != "VistaExhaustiva" {
 				return
 			}
-
 			//Recibing post
 			err = in.Decode(&post)
 			if err != nil {
-				log.Printf("Failed getting post: %v", err)
+				log.Printf("Failed decoding VistaExhaustiva: %v", err)
 				return
 			}
-			log.Printf("Got special data: %+v \n\n", post)
-
-			log.Printf("enviado")
+			log.Println("enviado")
 			dataExhaustive <- post
+			go pedirInfo(cPost, out)
 
 		default:
-
 			//type of message
 			err = in.Decode(&option)
 			if err != nil {
 				log.Printf("Failed getting post: %v", err)
+				cPost <- 1
 				return
 			}
 
 			//incoming data is not a post, reboot client
 			if option != "post" {
+				log.Printf("Disconecting that is not a post")
+				cPost <- 1
 				return
 			}
-
 			//Recibing post
 			err = in.Decode(&post)
 			if err != nil {
 				log.Printf("Failed getting post: %v", err)
+				cPost <- 1
 				return
 			}
 			log.Printf("Got msg: %+v \n\n", post)
@@ -168,24 +167,25 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				log.Printf("Cant insert Register in bbdd")
 			}
 
-			/* /response
+			//response
 			err = out.Encode("ok")
 			if err != nil {
 				log.Printf("failed sending response to client: %v", err)
+				cPost <- 1
 				return
 			}
-			*/
-			//fin select
-		}
-	}
-}
+			//fin del default
+		} //fin del select
+	} //fin del for
+} //fin func
 
-func (c *server) login(id uint64, sensor []uint64, enc encoder, s string) error {
-	if _, ok := c.conns[id]; ok {
+func (c *server) login(id uint64, sensor []uint64, conn string) error {
+	if _, ok := c.connections[id]; ok {
 		return fmt.Errorf("user already exists")
 	}
-	c.conns[id] = enc
-	c.connections[id] = s
+	//	c.connOut[id] = enc
+	//	c.connIn[id] = dec
+	c.connections[id] = conn
 	c.idSensor[id] = sensor
 	log.Println("login succesed")
 	return nil
@@ -196,10 +196,31 @@ func (c *server) logout(id uint64) {
 	defer c.lock.Unlock()
 	delete(c.connections, id)
 	delete(c.idSensor, id)
-	delete(c.conns, id)
+	//	delete(c.connOut, id)
 	log.Println("loggedout")
 }
 
+//peticion continua de posts con func anonima
+func pedirInfo(cPost chan int, out *json.Encoder) {
+	for {
+		select {
+		case <-cPost:
+			return
+		default:
+
+			log.Println("Sending message to get a post")
+			err := out.Encode("post")
+			if err != nil {
+				log.Fatal("Error codificando post")
+			}
+
+			time.Sleep(15 * time.Second)
+			//fin
+		}
+	}
+}
+
+/*
 type logger struct {
 	remoteAddr string
 }
@@ -207,3 +228,4 @@ type logger struct {
 func (l logger) Printf(format string, args ...interface{}) {
 	log.Printf("[%s] %s", l.remoteAddr, fmt.Sprintf(format, args...))
 }
+*/
