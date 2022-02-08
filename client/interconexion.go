@@ -74,8 +74,8 @@ func ConnectServer(ch chan int, post models.SensorInfoGeneral, logp binding.Stri
 	//chanels for internal comunication
 	var message = make(chan string)
 	var private = make(chan int)
-	go timer(ctx, message, private)
-	go listen(ctx, message, in, private)
+	go timer(message, private)
+	go listen(message, in, private)
 	// Loop until user terminates
 	for {
 
@@ -127,17 +127,23 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 		log.Fatalf("Failed sending message1: %v", err)
 	}
 	post.Data = make([]models.DataSensor, 0, nData)
-	for i := 0; i < nData; i++ {
-		//numeros aleatorios para la data, me da un numero entre 0 y 1
-		x = min + rand.Float64()*(max-min)
-		y = min + rand.Float64()*(max-min)
-		z = min + rand.Float64()*(max-min)
 
-		post.Data = append(post.Data, models.DataSensor{
-			AcelerationX: x,
-			AcelerationY: y,
-			AcelerationZ: z,
-		})
+	for _, sensor := range post.IdSensor {
+
+		for i := 0; i < nData; i++ {
+			//numeros aleatorios para la data, me da un numero entre 0 y 1
+			x = min + rand.Float64()*(max-min)
+			y = min + rand.Float64()*(max-min)
+			z = min + rand.Float64()*(max-min)
+
+			post.Data = append(post.Data, models.DataSensor{
+				IdSensorData: sensor,
+				AcelerationX: x,
+				AcelerationY: y,
+				AcelerationZ: z,
+			})
+		}
+
 	}
 	post.Time = time.Now()
 	// Send the message to the server
@@ -147,7 +153,7 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 	}
 }
 
-func listen(ct context.Context, message chan string, in *json.Decoder, private chan int) {
+func listen(message chan string, in *json.Decoder, private chan int) {
 	for {
 		select {
 		case <-private:
@@ -157,7 +163,7 @@ func listen(ct context.Context, message chan string, in *json.Decoder, private c
 			var resp string
 			err := in.Decode(&resp)
 			if err != nil {
-				log.Fatalf("Failed receiving message: %v", err)
+				log.Println("Failed receiving message: %v", err)
 			}
 			if (resp == "post") || (resp == "ok") || (resp == "exhaustiva") {
 				message <- resp
@@ -169,7 +175,7 @@ func listen(ct context.Context, message chan string, in *json.Decoder, private c
 	}
 }
 
-func timer(ct context.Context, message chan string, private chan int) {
+func timer(message chan string, private chan int) {
 	for {
 		select {
 		case <-private:

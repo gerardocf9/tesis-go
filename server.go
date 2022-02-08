@@ -14,5 +14,6 @@ func main() {
 	}
 	handlers.Manejadores()
 
+	//defer bbdd.MongoCN.Database("tesis").Collection("MotorData").DeleteMany(context.Background(), interface{}{},)
 	defer bbdd.Close()
 }

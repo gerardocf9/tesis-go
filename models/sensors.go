@@ -14,7 +14,12 @@ type SensorInfoGeneral struct {
 }
 
 type DataSensor struct {
+	IdSensorData uint64  `bson:"IdSensorData" json:"IdSensorData"`
 	AcelerationX float64 `bson:"AcelerationX" json:"AcelerationX"`
 	AcelerationY float64 `bson:"AcelerationY" json:"AcelerationY"`
 	AcelerationZ float64 `bson:"AcelerationZ" json:"AcelerationZ"`
+}
+
+type MotorConnected struct {
+	IdMotor []uint64 `bson:"IdMotor" json:"IdMotor"`
 }
