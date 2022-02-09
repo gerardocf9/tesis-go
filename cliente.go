@@ -57,19 +57,19 @@ func main() {
 	subNivels2 := container.New(layout.NewGridLayout(2), subS2, widget.NewLabel("Lado Carga"))
 
 	s3 := binding.NewString()
-	s3.Set("3")
+	s3.Set("0")
 	sen3 := widget.NewEntryWithData(s3)
 	subS3 := container.New(layout.NewFormLayout(), widget.NewLabel("s3: "), sen3)
 	subNivels3 := container.New(layout.NewGridLayout(2), subS3, widget.NewLabel("chumacera-accesorio"))
 
 	s4 := binding.NewString()
-	s4.Set("4")
+	s4.Set("0")
 	sen4 := widget.NewEntryWithData(s4)
 	subS4 := container.New(layout.NewFormLayout(), widget.NewLabel("s4: "), sen4)
 	subNivels4 := container.New(layout.NewGridLayout(2), subS4, widget.NewLabel("chumacera-accesorio"))
 
 	s5 := binding.NewString()
-	s5.Set("5")
+	s5.Set("0")
 	sen5 := widget.NewEntryWithData(s5)
 	subS5 := container.New(layout.NewFormLayout(), widget.NewLabel("s5: "), sen5)
 	subNivels5 := container.New(layout.NewGridLayout(2), subS5, widget.NewLabel("chumacera-accesorio"))
@@ -154,38 +154,79 @@ func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s
 		log.Fatalf("No se pudo obtener la info")
 	}
 
+	// Los Sensores van a llevar una mascara binaria para almacenar:
+	//tipo de sensor, ubicacion , numero de serie
+
+	//El modelo tiene la forma: 0xA15,A14,A13,A12,A11...A0
+	//A15:Tipo sensor 0000b acelerometro
+	//A14:Ubicacion, 0libre 1carga, 2...15 chumaceras y conexiones
+	//A11...A0Codigo de sensor 2^11 posibilidades de serie
 	var idSensor []uint64
+	// lista de sensores
+
+	var (
+		ladLibre    uint64 = 0x0000000000000000
+		ladCarga    uint64 = 0x0100000000000000
+		chumYConex1 uint64 = 0x0200000000000000
+		chumYConex2 uint64 = 0x0300000000000000
+		chumYConex3 uint64 = 0x0400000000000000
+		numHex      uint64
+	)
 
 	aux, err = s1.Get()
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")
 	}
 	num, _ = strconv.ParseInt(aux, 10, 64)
-	idSensor = append(idSensor, uint64(num))
+	if num > 0 {
+		numHex = ladLibre | uint64(num)
+		idSensor = append(idSensor, numHex)
+	}
+
 	aux, err = s2.Get()
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")
 	}
+
 	num, _ = strconv.ParseInt(aux, 10, 64)
-	idSensor = append(idSensor, uint64(num))
+	if num > 0 {
+		numHex = ladCarga | uint64(num)
+		idSensor = append(idSensor, numHex)
+	}
+
 	aux, err = s3.Get()
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")
 	}
+
 	num, _ = strconv.ParseInt(aux, 10, 64)
-	idSensor = append(idSensor, uint64(num))
+	if num > 0 {
+		numHex = chumYConex1 | uint64(num)
+		idSensor = append(idSensor, numHex)
+	}
+
 	aux, err = s4.Get()
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")
 	}
+
 	num, _ = strconv.ParseInt(aux, 10, 64)
-	idSensor = append(idSensor, uint64(num))
+	if num > 0 {
+		numHex = chumYConex2 | uint64(num)
+		idSensor = append(idSensor, numHex)
+	}
+
 	aux, err = s5.Get()
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")
 	}
+
 	num, _ = strconv.ParseInt(aux, 10, 64)
-	idSensor = append(idSensor, uint64(num))
+	if num > 0 {
+		numHex = chumYConex3 | uint64(num)
+		idSensor = append(idSensor, numHex)
+	}
+	//fin de sensores
 
 	nivelD, err := dmg.Get()
 	if err != nil {
@@ -196,8 +237,8 @@ func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s
 	log.Println(idMotor)
 	log.Println(potencia)
 	log.Println(nivelD)
-	for _, sen := range idSensor {
-		log.Println(sen)
+	for i, sen := range idSensor {
+		log.Printf("\nvalor:%d %X\n", i, sen)
 	}
 	var post = models.SensorInfoGeneral{
 		IdMotor:         idMotor,
