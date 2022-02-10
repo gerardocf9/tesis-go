@@ -12,8 +12,8 @@ func main() {
 	if bbdd.CheckConnection() == 0 {
 		log.Fatal("Sin conexion a la BD")
 	}
-	handlers.Manejadores()
 
+	handlers.Manejadores()
 	//defer bbdd.MongoCN.Database("tesis").Collection("MotorData").DeleteMany(context.Background(), interface{}{},)
 	defer bbdd.Close()
 }

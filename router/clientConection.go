@@ -39,12 +39,6 @@ var dataExhaustive = make(chan models.SensorInfoGeneral)
 
 //var MaxServidor = maxServer{sPost: Servidor}
 
-func getInfoSensor(w http.ResponseWriter, r *http.Request) {
-	log.Println("sirve")
-
-	log.Println(r.Body)
-	//log.Println(c)
-}
 func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := h2conn.Accept(w, r)
 	if err != nil {
@@ -97,6 +91,13 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Defer logout log message
 	defer log.Printf("User logout: %d", idMotor)
+
+	//verificando si existe en la lista de motores con informacion
+	err = bbdd.ListMotor(idMotor)
+	if err != nil {
+		log.Printf("Failed listing motor %v", err)
+
+	}
 
 	// wait for client to close connection
 	post := models.SensorInfoGeneral{}

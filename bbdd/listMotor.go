@@ -3,6 +3,8 @@ package bbdd
 
 import (
 	"context"
+	"errors"
+	"log"
 	"time"
 
 	"github.com/gerardocf9/tesis-go/models"
@@ -15,6 +17,11 @@ func ListMotor(idMotor uint64) error {
 
 	db := MongoCN.Database("tesis")
 	col := db.Collection("MotoresInDB")
+
+	if CheckConnection() == 0 {
+		return errors.New("Can't connect with the DB")
+	}
+
 	result, err := getList()
 
 	if err != nil {
@@ -23,6 +30,7 @@ func ListMotor(idMotor uint64) error {
 
 	for _, idAct := range result.IdMotor {
 		if idAct == idMotor {
+			log.Println("ya existe en la BBDD")
 			return nil
 		}
 	}
@@ -34,7 +42,16 @@ func ListMotor(idMotor uint64) error {
 	// filter will get updated.
 	// update contains the filed which should get updated.
 	//db.collection.find().limit(1).sort({$natural:-1})
-	_, err = col.UpdateOne(ctx, bson.D{}, result)
+
+	_, err = col.UpdateOne(
+		ctx,
+		bson.D{},
+		bson.D{
+			{"$set", bson.D{{"IdMotor", result.IdMotor}}},
+		},
+	)
+
+	log.Println("agregado a la BBDD")
 	return err
 }
 

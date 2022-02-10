@@ -2,6 +2,7 @@ package bbdd
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -18,6 +19,10 @@ func InsertRegistro(u models.SensorInfoGeneral) (*mongo.InsertOneResult, bool, e
 	col := db.Collection("MotorData")
 
 	//	u.Password, _ = EncriptarPassword(u.Password)
+
+	if CheckConnection() == 0 {
+		return nil, false, errors.New("Can't connect with the DB")
+	}
 
 	result, err := col.InsertOne(ctx, u)
 	if err != nil {
