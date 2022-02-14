@@ -3,23 +3,16 @@ package router
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 )
 
 func VistaExhaustiva(w http.ResponseWriter, r *http.Request) {
 	//obtenemos id
-	aux := r.URL.Query().Get("idMotor")
-	if len(aux) < 1 {
+	idMotor := r.URL.Query().Get("idMotor")
+	if len(idMotor) < 1 {
 		http.Error(w, "Debe enviar el Parametro del ID", http.StatusBadRequest)
 		return
 	}
 
-	sidMotor, err := strconv.ParseInt(aux, 10, 64)
-	if err != nil {
-		http.Error(w, "No se pudo obtener el ID", http.StatusBadRequest)
-		return
-	}
-	idMotor := uint64(sidMotor)
 	//Chequeamos exista el sensor a los motores conectado
 	conn, ok := Servidor.connections[idMotor]
 	if !ok {

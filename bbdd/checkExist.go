@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func CheckExist(idMotor uint64) (models.SensorInfoGeneral, bool, uint64) {
+func CheckExist(idMotor string) (models.SensorInfoGeneral, bool, string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 

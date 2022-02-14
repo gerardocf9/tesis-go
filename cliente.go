@@ -135,15 +135,13 @@ func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s
 		log.Fatalf("No se pudo obtener la info")
 	}
 	//idmotor a unsigned
-	aux, err := id.Get()
-	num, _ := strconv.ParseInt(aux, 10, 64)
-	idMotor := uint64(num)
+	idMotor, err := id.Get()
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")
 	}
 	//potencia a float
-	aux, err = pot.Get()
-	num, _ = strconv.ParseInt(aux, 10, 64)
+	aux, err := pot.Get()
+	num, _ := strconv.ParseInt(aux, 10, 64)
 	potencia := float64(num)
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")

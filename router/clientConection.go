@@ -16,9 +16,9 @@ type encoder interface {
 	Encode(interface{}) error
 }
 type server struct {
-	conns       map[uint64]encoder
-	connections map[uint64]string
-	idSensor    map[uint64][]uint64
+	conns       map[string]encoder
+	connections map[string]string
+	idSensor    map[string][]uint64
 	lock        sync.RWMutex
 }
 
@@ -28,9 +28,9 @@ type maxServer struct {
 }
 */
 var Servidor = server{
-	connections: make(map[uint64]string),
-	conns:       make(map[uint64]encoder),
-	idSensor:    make(map[uint64][]uint64),
+	connections: make(map[string]string),
+	conns:       make(map[string]encoder),
+	idSensor:    make(map[string][]uint64),
 }
 
 var canalInterno = make(chan string)
@@ -56,7 +56,7 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 
 	// First check user login ids
-	var idMotor uint64
+	var idMotor string
 	var idSensor []uint64
 
 	err = in.Decode(&idMotor)
@@ -181,7 +181,7 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c *server) login(id uint64, sensor []uint64, enc encoder, s string) error {
+func (c *server) login(id string, sensor []uint64, enc encoder, s string) error {
 	if _, ok := c.conns[id]; ok {
 		return fmt.Errorf("user already exists")
 	}
@@ -192,7 +192,7 @@ func (c *server) login(id uint64, sensor []uint64, enc encoder, s string) error 
 	return nil
 }
 
-func (c *server) logout(id uint64) {
+func (c *server) logout(id string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	delete(c.connections, id)
