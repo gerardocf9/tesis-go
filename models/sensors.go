@@ -15,7 +15,8 @@ type SensorInfoGeneral struct {
 
 type DataSensor struct {
 	IdSensorData uint64  `bson:"IdSensorData" json:"IdSensorData"`
-	AcelerationX float64 `bson:"AcelerationX" json:"AcelerationX"`
-	AcelerationY float64 `bson:"AcelerationY" json:"AcelerationY"`
-	AcelerationZ float64 `bson:"AcelerationZ" json:"AcelerationZ"`
+	Aceleracion  float64 `bson:"Aceleracion" json:"Aceleracion"`
+	VelocidadX   float64 `bson:"VelocidadX" json:"VelocidadX"`
+	VelocidadY   float64 `bson:"VelocidadY" json:"VelocidadY"`
+	VelocidadZ   float64 `bson:"VelocidadZ" json:"VelocidadZ"`
 }

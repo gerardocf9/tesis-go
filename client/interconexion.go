@@ -118,6 +118,7 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 		x float64
 		y float64
 		z float64
+		A float64
 	)
 	min := float64(3)
 	max := float64(10)
@@ -135,12 +136,14 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 			x = min + rand.Float64()*(max-min)
 			y = min + rand.Float64()*(max-min)
 			z = min + rand.Float64()*(max-min)
+			A = min + rand.Float64()*(max-min)
 
 			post.Data = append(post.Data, models.DataSensor{
 				IdSensorData: sensor,
-				AcelerationX: x,
-				AcelerationY: y,
-				AcelerationZ: z,
+				Aceleracion:  A,
+				VelocidadX:   x,
+				VelocidadY:   y,
+				VelocidadZ:   z,
 			})
 		}
 

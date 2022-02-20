@@ -90,7 +90,7 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer c.logout(idMotor)
 
 	// Defer logout log message
-	defer log.Printf("User logout: %d", idMotor)
+	defer log.Printf("User logout: %s", idMotor)
 
 	//verificando si existe en la lista de motores con informacion
 	err = bbdd.ListMotor(idMotor)
