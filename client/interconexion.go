@@ -4,9 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
 
 	"fyne.io/fyne/v2/data/binding"
@@ -17,7 +18,7 @@ import (
 
 const url = "https://localhost:8080/sensormessage"
 
-func ConnectServer(ch chan int, post models.SensorInfoGeneral, logp binding.String) {
+func ConnectServer(ch chan int, post models.SensorInfoGeneral, logp binding.String, nivelD int) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -89,11 +90,11 @@ func ConnectServer(ch chan int, post models.SensorInfoGeneral, logp binding.Stri
 				logp.Set("Got response " + resp)
 			}
 			if resp == "post" {
-				sendPost(resp, 10, post, out)
+				sendPost(resp, 10, post, out, nivelD)
 				logp.Set("sending post ")
 			}
 			if resp == "exhaustiva" {
-				sendPost(resp, 1000, post, out)
+				sendPost(resp, 1000, post, out, nivelD)
 				logp.Set("sending exhaustive")
 			}
 
@@ -113,15 +114,9 @@ func ConnectServer(ch chan int, post models.SensorInfoGeneral, logp binding.Stri
 
 }
 
-func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.Encoder) {
-	var (
-		x float64
-		y float64
-		z float64
-		A float64
-	)
-	min := float64(3)
-	max := float64(10)
+func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.Encoder, nivelD int) {
+
+	dam := strconv.FormatInt(int64(nivelD), 10)
 
 	err := out.Encode(msg)
 	if err != nil {
@@ -130,23 +125,26 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 	post.Data = make([]models.DataSensor, 0, nData)
 
 	for _, sensor := range post.IdSensor {
-
-		for i := 0; i < nData; i++ {
-			//numeros aleatorios para la data, me da un numero entre 0 y 1
-			x = min + rand.Float64()*(max-min)
-			y = min + rand.Float64()*(max-min)
-			z = min + rand.Float64()*(max-min)
-			A = min + rand.Float64()*(max-min)
-
-			post.Data = append(post.Data, models.DataSensor{
-				IdSensorData: sensor,
-				Aceleracion:  A,
-				VelocidadX:   x,
-				VelocidadY:   y,
-				VelocidadZ:   z,
-			})
+		dir := "https://tesis-fastapi-gf9gs.ondigitalocean.app/" + dam + "/" + strconv.FormatInt(int64(sensor), 10)
+		resp, err := http.Get(dir)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		//We Read the response body on the line below.
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalln(err)
 		}
 
+		var examples []models.DataSensor
+		err = json.Unmarshal(body, &examples)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, v := range examples {
+			post.Data = append(post.Data, v)
+		}
+		log.Printf(" %+v", post)
 	}
 	post.Time = time.Now()
 	// Send the message to the server

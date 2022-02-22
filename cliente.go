@@ -245,5 +245,5 @@ func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s
 	}
 
 	//ConnectServer(post, logp,dir,potencia)
-	client.ConnectServer(ch, post, logp)
+	client.ConnectServer(ch, post, logp, int(nivelD))
 }
