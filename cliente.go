@@ -162,12 +162,12 @@ func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s
 	var idSensor []uint64
 	// lista de sensores
 
-	var (
+	var ( //tipo|reservado|reservado|ubicacion|id
 		ladLibre    uint64 = 0x0000000000000000
-		ladCarga    uint64 = 0x0100000000000000
-		chumYConex1 uint64 = 0x0200000000000000
-		chumYConex2 uint64 = 0x0300000000000000
-		chumYConex3 uint64 = 0x0400000000000000
+		ladCarga    uint64 = 0x0001000000000000
+		chumYConex1 uint64 = 0x0002000000000000
+		chumYConex2 uint64 = 0x0003000000000000
+		chumYConex3 uint64 = 0x0004000000000000
 		numHex      uint64
 	)
 
