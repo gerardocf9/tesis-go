@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -94,7 +95,7 @@ func ConnectServer(ch chan int, post models.SensorInfoGeneral, logp binding.Stri
 				logp.Set("sending post ")
 			}
 			if resp == "exhaustiva" {
-				sendPost(resp, 1000, post, out, nivelD)
+				sendExhaustive(resp, post, out, nivelD)
 				logp.Set("sending exhaustive")
 			}
 
@@ -125,7 +126,7 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 	post.Data = make([]models.DataSensor, 0, nData)
 
 	for _, sensor := range post.IdSensor {
-		dir := "https://tesis-fastapi-gf9gs.ondigitalocean.app/" + dam + "/" + strconv.FormatInt(int64(sensor), 10)
+		dir := "https://tesis-fastapi-gf9gs.ondigitalocean.app/normal/" + dam + "/" + strconv.FormatInt(int64(sensor), 10)
 		resp, err := http.Get(dir)
 		if err != nil {
 			log.Fatalln(err)
@@ -144,11 +145,61 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 		for _, v := range examples {
 			post.Data = append(post.Data, v)
 		}
-		log.Printf(" %+v", post)
 	}
 	post.Time = time.Now()
 	// Send the message to the server
 	err = out.Encode(post)
+	if err != nil {
+		log.Fatalf("Failed sending message: %v", err)
+	}
+}
+
+func sendExhaustive(msg string, post models.SensorInfoGeneral, out *json.Encoder, nivelD int) {
+
+	dam := int64(nivelD)
+	err := out.Encode(msg)
+	if err != nil {
+		log.Fatalf("Failed sending message1: %v", err)
+	}
+	var postExhaustive = models.SensorExhaustive{
+		IdMotor:         post.IdMotor,
+		IdSensor:        post.IdSensor,
+		Caracteristicas: post.Caracteristicas,
+	}
+	postExhaustive.Data = make([]models.DataExhaustive, 0, 5)
+
+	for _, sensor := range postExhaustive.IdSensor {
+		dam += int64(-2 + rand.Intn(4))
+		if dam > 10 {
+			dam = 10
+		}
+		if dam < 0 {
+			dam = 0
+		}
+
+		dam2 := strconv.FormatInt(dam, 10)
+		log.Println(dam2)
+		dir := "https://tesis-fastapi-gf9gs.ondigitalocean.app/exhaustiva/" + dam2 + "/" + strconv.FormatInt(int64(sensor), 10)
+		resp, err := http.Get(dir)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		//We Read the response body on the line below.
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		var example models.DataExhaustive
+		err = json.Unmarshal(body, &example)
+		if err != nil {
+			log.Fatal(err)
+		}
+		postExhaustive.Data = append(postExhaustive.Data, example)
+	}
+	postExhaustive.Time = time.Now()
+	// Send the message to the server
+	err = out.Encode(postExhaustive)
 	if err != nil {
 		log.Fatalf("Failed sending message: %v", err)
 	}

@@ -35,7 +35,7 @@ var Servidor = server{
 
 var canalInterno = make(chan string)
 
-var dataExhaustive = make(chan models.SensorInfoGeneral)
+var dataExhaustive = make(chan models.SensorExhaustive)
 
 //var MaxServidor = maxServer{sPost: Servidor}
 
@@ -101,6 +101,7 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// wait for client to close connection
 	post := models.SensorInfoGeneral{}
+	postExhaustive := models.SensorExhaustive{}
 
 	var option string
 	for r.Context().Err() == nil {
@@ -127,15 +128,14 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			//Recibing post
-			err = in.Decode(&post)
+			err = in.Decode(&postExhaustive)
 			if err != nil {
 				log.Printf("Failed getting post: %v", err)
 				return
 			}
-			log.Printf("Got special data: %+v \n\n", post)
 
 			log.Printf("enviado")
-			dataExhaustive <- post
+			dataExhaustive <- postExhaustive
 
 		default:
 
@@ -157,7 +157,6 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				log.Printf("Failed getting post: %v", err)
 				return
 			}
-			log.Printf("Got msg: %+v \n\n", post)
 
 			//inserting in bbdd
 			_, status, err := bbdd.InsertRegistro(post)
@@ -169,14 +168,6 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				log.Printf("Cant insert Register in bbdd")
 			}
 
-			/* /response
-			err = out.Encode("ok")
-			if err != nil {
-				log.Printf("failed sending response to client: %v", err)
-				return
-			}
-			*/
-			//fin select
 		}
 	}
 }
