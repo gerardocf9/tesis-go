@@ -20,7 +20,7 @@ func main() {
 
 	//motor
 	id_log := binding.NewString()
-	id_log.Set("2451")
+	id_log.Set("Pru123")
 	id := widget.NewEntryWithData(id_log)
 
 	pot_log := binding.NewString()
@@ -80,7 +80,7 @@ func main() {
 
 	//coneccion
 	ip_log := binding.NewString()
-	ip_log.Set("localhost:8080")
+	ip_log.Set("159.223.102.64")
 
 	ip := widget.NewEntryWithData(ip_log)
 
@@ -245,5 +245,5 @@ func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s
 	}
 
 	//ConnectServer(post, logp,dir,potencia)
-	client.ConnectServer(ch, post, logp, int(nivelD))
+	client.ConnectServer(dir, ch, post, logp, int(nivelD))
 }

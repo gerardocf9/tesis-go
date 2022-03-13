@@ -1,16 +1,12 @@
 package models
 
-import (
-	"time"
-)
-
 type SensorInfoGeneral struct {
 	//	Id              primitive.ObjectID `bson:"_id" json:"id"`
 	IdMotor         string       `bson:"IdMotor" json:"IdMotor"`
 	Caracteristicas string       `bson:"caracteristicas,omitempty" json:"caracteristicas"`
 	IdSensor        []uint64     `bson:"IdSensor" json:"IdSensor"`
 	Data            []DataSensor `bson:"Data" json:"Data"`
-	Time            time.Time    `bson:"Time" json:"Time"`
+	Time            int64        `bson:"Time" json:"Time"`
 }
 
 type DataSensor struct {
