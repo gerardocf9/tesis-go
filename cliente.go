@@ -20,7 +20,7 @@ func main() {
 
 	//motor
 	id_log := binding.NewString()
-	id_log.Set("Pru123")
+	id_log.Set("pru123")
 	id := widget.NewEntryWithData(id_log)
 
 	pot_log := binding.NewString()
@@ -80,7 +80,7 @@ func main() {
 
 	//coneccion
 	ip_log := binding.NewString()
-	ip_log.Set("159.223.102.64")
+	ip_log.Set("localhost:8080")
 
 	ip := widget.NewEntryWithData(ip_log)
 
