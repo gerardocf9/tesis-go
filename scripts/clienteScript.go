@@ -37,6 +37,10 @@ func main() {
 		caracteristicas string
 		nDamage         int
 		direccion       string
+		umbInfVel       int
+		umbSupVel       int
+		umbInfAcel      int
+		umbSupAcel      int
 	)
 
 	// flags declaration using flag package
@@ -48,6 +52,10 @@ func main() {
 	flag.IntVar(&s2, "s2", 0, "Specify IdSensor1 . Default 2.")
 	flag.IntVar(&s3, "s3", 0, "Specify IdSensor1 . Default 0.")
 	flag.IntVar(&s4, "s4", 0, "Specify IdSensor1 . Default 0.")
+	flag.IntVar(&umbInfVel, "uiv", 12, "Umbral inferior Velocidad . Default 12.")
+	flag.IntVar(&umbSupVel, "usv", 20, "Umbral superior Velocidad . Default 20.")
+	flag.IntVar(&umbInfAcel, "uia", 2, "Umbral inferior Aceleración . Default 2.")
+	flag.IntVar(&umbSupAcel, "usa", 5, "Umbral superior Aceleración . Default 5.")
 
 	flag.Parse() // after declaring flags we need to call it
 	if (IdMotor == "") || (s1 == 0) || (s2 == 0) || (direccion == "") {
@@ -89,6 +97,10 @@ func main() {
 		IdMotor:         IdMotor,
 		IdSensor:        idSensor,
 		Caracteristicas: caracteristicas,
+		UmbInferiorVel:  int32(umbInfVel),
+		UmbSuperiorVel:  int32(umbSupVel),
+		UmbInferiorAcel: int32(umbInfAcel),
+		UmbSuperiorAcel: int32(umbSupAcel),
 	}
 
 	ConnectServer(direccion, post, nDamage)
@@ -277,7 +289,9 @@ func listen(message chan string, in *json.Decoder, private chan int) {
 				log.Println("Failed receiving message: %v", err)
 			}
 			if (resp == "post") || (resp == "ok") || (resp == "exhaustiva") {
+				log.Println(resp)
 				message <- resp
+				log.Println("Listen send")
 				continue
 			}
 			message <- "error"
@@ -287,14 +301,21 @@ func listen(message chan string, in *json.Decoder, private chan int) {
 }
 
 func timer(message chan string, private chan int) {
+	t := time.Now()
+	u, _ := time.ParseDuration("5s")
 	for {
 		select {
 		case <-private:
 			log.Println("Canceled timer")
 			return
 		default:
-			message <- "post"
-			time.Sleep(15 * time.Second)
+			fmt.Printf(".")
+			if time.Since(t) > u {
+				message <- "post"
+				t = time.Now()
+				fmt.Printf("-")
+			}
+			time.Sleep(1 * time.Second)
 		}
 	}
 }

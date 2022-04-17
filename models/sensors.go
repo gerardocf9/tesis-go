@@ -7,6 +7,10 @@ type SensorInfoGeneral struct {
 	IdSensor        []uint64     `bson:"IdSensor" json:"IdSensor"`
 	Data            []DataSensor `bson:"Data" json:"Data"`
 	Time            int64        `bson:"Time" json:"Time"`
+	UmbInferiorVel  int32        `bson:"UmbInferiorVel" json: "UmbInferiorVel"`
+	UmbSuperiorVel  int32        `bson:"UmbSuperiorVel" json: "UmbSuperiorVel"`
+	UmbInferiorAcel int32        `bson:"UmbInferiorAcel" json: "UmbInferiorAcel"`
+	UmbSuperiorAcel int32        `bson:"UmbSuperiorAcel" json: "UmbSuperiorAcel"`
 }
 
 type DataSensor struct {

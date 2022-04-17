@@ -37,6 +37,10 @@ func main() {
 		reset           string
 		fInicio         int
 		cantIteraciones int
+		umbInfVel       int
+		umbSupVel       int
+		umbInfAcel      int
+		umbSupAcel      int
 	)
 
 	// flags declaration using flag package
@@ -50,6 +54,10 @@ func main() {
 	flag.StringVar(&reset, "r", "false", "Reset the BBDD . Default false.")
 	flag.IntVar(&fInicio, "fi", 90, "fecha Inicio cantidad de dias atras de hoy. Default 30")
 	flag.IntVar(&cantIteraciones, "ci", 90, "Cantidad de iteraciones a ejecutarse.Default 30")
+	flag.IntVar(&umbInfVel, "uiv", 12, "Umbral inferior Velocidad . Default 12.")
+	flag.IntVar(&umbSupVel, "usv", 20, "Umbral superior Velocidad . Default 20.")
+	flag.IntVar(&umbInfAcel, "uia", 2, "Umbral inferior Aceleración . Default 2.")
+	flag.IntVar(&umbSupAcel, "usa", 5, "Umbral superior Aceleración . Default 5.")
 
 	flag.Parse() // after declaring flags we need to call it
 	if (IdMotor == "") || (s1 == 0) || (s2 == 0) {
@@ -117,6 +125,10 @@ func main() {
 		IdMotor:         IdMotor,
 		IdSensor:        idSensor,
 		Caracteristicas: caracteristicas,
+		UmbInferiorVel:  int32(umbInfVel),
+		UmbSuperiorVel:  int32(umbSupVel),
+		UmbInferiorAcel: int32(umbInfAcel),
+		UmbSuperiorAcel: int32(umbSupAcel),
 	}
 
 	if bbdd.CheckConnection() == 0 {

@@ -87,6 +87,17 @@ func main() {
 	work := make(chan int)
 
 	running := false
+
+	umbSupVel := binding.NewString()
+	umbInfVel := binding.NewString()
+	umbSupVel.Set("20")
+	umbInfVel.Set("12")
+
+	umbSupAcel := binding.NewString()
+	umbInfAcel := binding.NewString()
+	umbSupAcel.Set("5")
+	umbInfAcel.Set("2")
+
 	conect := widget.NewButton("conectar", func() {
 		if running {
 			log.Println("Sending")
@@ -95,17 +106,29 @@ func main() {
 			<-work
 		}
 		running = true
-		go conectServidor(work, ip_log, id_log, pot_log, info_log, s1, s2, s3, s4, s5, logM, dmg)
+		go conectServidor(work, ip_log, id_log, pot_log, info_log, s1, s2, s3, s4, s5, logM, dmg, umbSupVel, umbInfVel, umbSupAcel, umbInfAcel)
+
 	})
 	subNivel1 := container.New(layout.NewFormLayout(), widget.NewLabel("IP: "), ip)
 	subNivel2 := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), conect, layout.NewSpacer())
 
 	nivel1 := container.New(layout.NewGridLayout(2), subNivel1, subNivel2)
 
+	umb1 := widget.NewEntryWithData(umbInfVel)
+	umb2 := widget.NewEntryWithData(umbSupVel)
+	umb3 := widget.NewEntryWithData(umbInfAcel)
+	umb4 := widget.NewEntryWithData(umbSupAcel)
+
+	umbrales1 := container.New(layout.NewGridLayout(3), widget.NewLabel("velocidad: "), umb1, umb2)
+	umbrales2 := container.New(layout.NewGridLayout(3), widget.NewLabel("aceleración: "), umb3, umb4)
+
 	w.SetContent(
 		fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 			widget.NewLabel("Conección: "),
 			nivel1,
+			widget.NewLabel("Umbrales: "),
+			umbrales1,
+			umbrales2,
 			widget.NewSeparator(),
 			widget.NewLabel("Motor: "),
 			nivel2,
@@ -129,7 +152,7 @@ func main() {
 
 }
 
-func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s4, s5, logp binding.String, dmg binding.Float) {
+func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s4, s5, logp binding.String, dmg binding.Float, umbSupVel, umbInfVel, umbSupAcel, umbInfAcel binding.String) {
 	dir, err := ip.Get()
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")
@@ -226,6 +249,18 @@ func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s
 	}
 	//fin de sensores
 
+	aux, err = umbSupVel.Get()
+	umbral1, _ := strconv.ParseInt(aux, 10, 64)
+
+	aux, err = umbInfVel.Get()
+	umbral2, _ := strconv.ParseInt(aux, 10, 64)
+
+	aux, err = umbSupAcel.Get()
+	umbral3, _ := strconv.ParseInt(aux, 10, 64)
+
+	aux, err = umbInfAcel.Get()
+	umbral4, _ := strconv.ParseInt(aux, 10, 64)
+
 	nivelD, err := dmg.Get()
 	if err != nil {
 		log.Fatalf("No se pudo obtener la info")
@@ -242,6 +277,10 @@ func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s
 		IdMotor:         idMotor,
 		IdSensor:        idSensor,
 		Caracteristicas: informacion,
+		UmbInferiorVel:  int32(umbral2),
+		UmbSuperiorVel:  int32(umbral1),
+		UmbInferiorAcel: int32(umbral4),
+		UmbSuperiorAcel: int32(umbral3),
 	}
 
 	//ConnectServer(post, logp,dir,potencia)
