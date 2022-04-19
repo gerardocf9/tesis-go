@@ -66,6 +66,7 @@ func main() {
 		return
 	}
 
+	//conexion con la base de datos
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	if reset == "true" {
@@ -89,6 +90,7 @@ func main() {
 			return
 		}
 	}
+	//chequeo de información
 	var ( //tipo|reservado|reservado|ubicacion|id
 		ladLibre    uint64 = 0x0000000000000000
 		ladCarga    uint64 = 0x0001000000000000
@@ -142,6 +144,7 @@ func main() {
 	if fInicio < cantIteraciones {
 		cantIteraciones = fInicio
 	}
+	//ciclo de mensajes a enviar
 	for i := 0; i < cantIteraciones; i++ {
 		post.Data = make([]models.DataSensor, 0, 10)
 		if i != 0 && (i%40) == 0 {
@@ -151,6 +154,7 @@ func main() {
 			}
 			fmt.Printf("\nDamage level= %d\n", nDamage)
 		}
+		//solicitud al modelo estadistico
 		for _, sensor := range post.IdSensor {
 			dir := "https://tesis-fastapi-gf9gs.ondigitalocean.app/normal/" + strconv.FormatInt(int64(nDamage), 10) + "/" + strconv.FormatInt(int64(sensor), 10)
 			resp, err := http.Get(dir)
@@ -171,7 +175,7 @@ func main() {
 				post.Data = append(post.Data, v)
 			}
 		}
-
+		//modificacion de la fecha, 1dia mas
 		t = t.AddDate(0, 0, 1)
 		post.Time = t.Unix()
 		//inserting in bbdd

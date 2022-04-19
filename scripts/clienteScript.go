@@ -106,6 +106,7 @@ func main() {
 	ConnectServer(direccion, post, nDamage)
 }
 
+//ConnectServer permite la conexion con el microservicio de sensorica (main.go)
 func ConnectServer(dir string, post models.SensorInfoGeneral, nivelD int) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -186,6 +187,7 @@ func ConnectServer(dir string, post models.SensorInfoGeneral, nivelD int) {
 
 }
 
+//sendPost, envia informacion de mediciones normales
 func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.Encoder, nivelD int) {
 
 	dam := strconv.FormatInt(int64(nivelD), 10)
@@ -225,6 +227,7 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 	}
 }
 
+//sendExhaustive, envia informacion de mediciones exhaustivas
 func sendExhaustive(msg string, post models.SensorInfoGeneral, out *json.Encoder, nivelD int) {
 
 	dam := int64(nivelD)

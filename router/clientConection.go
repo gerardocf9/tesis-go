@@ -12,6 +12,7 @@ import (
 	"github.com/posener/h2conn"
 )
 
+//estrcuturas para el manejo de la conexión hhtp2
 type encoder interface {
 	Encode(interface{}) error
 }
@@ -22,11 +23,6 @@ type server struct {
 	lock        sync.RWMutex
 }
 
-/*
-type maxServer struct {
-	sPost server
-}
-*/
 var Servidor = server{
 	connections: make(map[string]string),
 	conns:       make(map[string]encoder),
@@ -37,8 +33,8 @@ var canalInterno = make(chan string)
 
 var dataExhaustive = make(chan models.SensorExhaustive)
 
-//var MaxServidor = maxServer{sPost: Servidor}
-
+//ServeHTTP crea el servidor, maestro, de los sensores que se
+//conecten a el
 func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := h2conn.Accept(w, r)
 	if err != nil {
@@ -172,6 +168,7 @@ func (c server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//login revisa, autentifica (unicidad) y conecta un motor
 func (c *server) login(id string, sensor []uint64, enc encoder, s string) error {
 	if _, ok := c.conns[id]; ok {
 		return fmt.Errorf("user already exists")
@@ -183,6 +180,7 @@ func (c *server) login(id string, sensor []uint64, enc encoder, s string) error 
 	return nil
 }
 
+//logout desconecta un cliente
 func (c *server) logout(id string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -196,6 +194,7 @@ type logger struct {
 	remoteAddr string
 }
 
+//Printf permite mostrar información
 func (l logger) Printf(format string, args ...interface{}) {
 	log.Printf("[%s] %s", l.remoteAddr, fmt.Sprintf(format, args...))
 }

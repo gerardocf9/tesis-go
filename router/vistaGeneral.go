@@ -11,6 +11,7 @@ type Book struct {
 	Author string
 }
 
+//VistaGeneral despliega un template HTML
 func VistaGeneral(w http.ResponseWriter, r *http.Request) {
 	book := Book{"Building web app with go", "Jeremy"}
 	fp := path.Join("static", "template/index.html")

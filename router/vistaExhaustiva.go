@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+// VistaExhaustiva es una API que devuelve un JSON con un array de
+//información de tipo vistaExhaustiva, utilizado para la FFT
 func VistaExhaustiva(w http.ResponseWriter, r *http.Request) {
 	//obtenemos id
 	idMotor := r.URL.Query().Get("idMotor")

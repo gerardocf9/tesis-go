@@ -10,6 +10,8 @@ import (
 
 //MongoCN is the conection to bbdd
 var MongoCN = ConectBD()
+
+//cambiar esta variable para redireccionar a otra BBDD mongo
 var clientOptions = options.Client().ApplyURI("mongodb+srv://gacf9:tesis123@cluster0.aohmy.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 
 //ConectBD Permite conectar a la bbdd
@@ -39,12 +41,7 @@ func CheckConnection() int {
 }
 
 func Close() {
-	// client provides a method to close
-	// a mongoDB connection.
 	defer func() {
-
-		// client.Disconnect method also has deadline.
-		// returns error if any,
 		if err := MongoCN.Disconnect(context.Background()); err != nil {
 			panic(err)
 		}

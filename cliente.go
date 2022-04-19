@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	//interfaz grafica con fyne
 	myApp := app.New()
 	w := myApp.NewWindow("Motor")
 
@@ -78,7 +79,7 @@ func main() {
 	logM := binding.NewString()
 	logM.Set("Hi!")
 
-	//coneccion
+	//conexión
 	ip_log := binding.NewString()
 	ip_log.Set("localhost:8080")
 
@@ -98,6 +99,8 @@ func main() {
 	umbSupAcel.Set("5")
 	umbInfAcel.Set("2")
 
+	//boton de conexión, si se ejecuta llama a una función anonima de forma asincrona
+	// esta función es un handdler que detiene ejecuciones previas de conectServidor
 	conect := widget.NewButton("conectar", func() {
 		if running {
 			log.Println("Sending")
@@ -124,7 +127,7 @@ func main() {
 
 	w.SetContent(
 		fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
-			widget.NewLabel("Conección: "),
+			widget.NewLabel("Conexión: "),
 			nivel1,
 			widget.NewLabel("Umbrales: "),
 			umbrales1,
@@ -152,6 +155,8 @@ func main() {
 
 }
 
+// conectServidor, se encarga de leer la información de la interfaz grafica, validarla,
+//convertirla al tipo necesario y la envia a la función ConnectServer en client/interconexion
 func conectServidor(ch chan int, ip, id, pot, info binding.String, s1, s2, s3, s4, s5, logp binding.String, dmg binding.Float, umbSupVel, umbInfVel, umbSupAcel, umbInfAcel binding.String) {
 	dir, err := ip.Get()
 	if err != nil {

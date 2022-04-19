@@ -86,6 +86,7 @@ func ConnectServer(dir string, ch chan int, post models.SensorInfoGeneral, logp 
 	for {
 
 		select {
+		//Recive something from "message"
 		case resp := <-message:
 			// Receive the response from the server
 			if resp == "error" {
@@ -102,7 +103,7 @@ func ConnectServer(dir string, ch chan int, post models.SensorInfoGeneral, logp 
 				sendExhaustive(resp, post, out, nivelD)
 				logp.Set("sending exhaustive")
 			}
-
+			//Recived something from ch
 		case <-ch:
 			log.Println("Discconecting")
 			private <- 1
@@ -119,6 +120,7 @@ func ConnectServer(dir string, ch chan int, post models.SensorInfoGeneral, logp 
 
 }
 
+// sendPost envia información al servidor, medición diaria
 func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.Encoder, nivelD int) {
 
 	dam := strconv.FormatInt(int64(nivelD), 10)
@@ -129,6 +131,7 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 	}
 	post.Data = make([]models.DataSensor, 0, nData)
 
+	//peticion de la información al modelo estadistico
 	for _, sensor := range post.IdSensor {
 		dir := "https://tesis-fastapi-gf9gs.ondigitalocean.app/normal/" + dam + "/" + strconv.FormatInt(int64(sensor), 10)
 		resp, err := http.Get(dir)
@@ -158,6 +161,7 @@ func sendPost(msg string, nData int, post models.SensorInfoGeneral, out *json.En
 	}
 }
 
+// sendExhaustive envia información al servidor, mediciones exhaustivas pra FFT
 func sendExhaustive(msg string, post models.SensorInfoGeneral, out *json.Encoder, nivelD int) {
 
 	dam := int64(nivelD)
@@ -209,6 +213,7 @@ func sendExhaustive(msg string, post models.SensorInfoGeneral, out *json.Encoder
 	}
 }
 
+//se encarga de escuchar cualquier petición del servidor
 func listen(message chan string, in *json.Decoder, private chan int) {
 	for {
 		select {
@@ -231,6 +236,7 @@ func listen(message chan string, in *json.Decoder, private chan int) {
 	}
 }
 
+//temporizador para enviar información
 func timer(message chan string, private chan int) {
 	for {
 		select {

@@ -12,20 +12,20 @@ import (
 	"github.com/gerardocf9/tesis-go/router"
 )
 
-//Manejadores, setea el puertoy el handler escucha la direccion de PORT
+//Manejadores, setea el puerto y el handler escucha la direccion de PORT
 func Manejadores() {
 	mx := mux.NewRouter()
-	//mx.Handle("/sensormessage", router.Servidor)                          //clientInterconexion
-	mx.HandleFunc("/sensormessage", middleware.CheckBDH(router.Servidor)) //Methods("POST")
-	mx.HandleFunc("/exhaustive", router.VistaExhaustiva)
-	mx.HandleFunc("/general", router.VistaGeneral)
+	//endpoints:
+	mx.HandleFunc("/sensormessage", middleware.CheckBDH(router.Servidor)) //clientInterconexion
+	mx.HandleFunc("/exhaustive", router.VistaExhaustiva)                  //API data exhaustiva
+	mx.HandleFunc("/general", router.VistaGeneral)                        //despliego HTML basico
 
 	PORT := os.Getenv("PORT")
 
 	if PORT == "" {
 		PORT = "8080"
 	}
-
+	//permite request desde todos los sitios
 	handler := cors.AllowAll().Handler(mx)
 
 	log.Printf("Serving on " + PORT)

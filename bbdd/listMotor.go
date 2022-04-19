@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+//ListMotor devuelve una lista de motores para saber de cuales se tiene información en la BBDD
 func ListMotor(idMotor string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
@@ -36,12 +37,11 @@ func ListMotor(idMotor string) error {
 	}
 
 	result.IdMotor = append(result.IdMotor, idMotor)
-	//db.collection.find().limit(1).sort({$natural:-1})
+	// ultimo elemento: db.collection.find().limit(1).sort({$natural:-1})
 
 	// A single document that match with the
 	// filter will get updated.
 	// update contains the filed which should get updated.
-	//db.collection.find().limit(1).sort({$natural:-1})
 
 	_, err = col.UpdateOne(
 		ctx,
